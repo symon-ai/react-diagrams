@@ -42,13 +42,13 @@ export class BodyWidget extends React.Component<BodyWidgetProps, BodyWidgetState
 									.getNodes()
 							).length;
 
-							var node = null;
+							var node = null, port = null;
 							if (data.type === "in") {
 								node = new DefaultNodeModel("Node " + (nodesCount + 1), "rgb(192,255,0)");
-								node.addInPort("In");
+								port = node.addInPort("In");
 							} else {
 								node = new DefaultNodeModel("Node " + (nodesCount + 1), "rgb(0,192,255)");
-								node.addOutPort("Out");
+								port = node.addOutPort("Out");
 							}
 							var points = this.props.app.getDiagramEngine().getRelativeMousePoint(event);
 							node.x = points.x;
@@ -57,6 +57,12 @@ export class BodyWidget extends React.Component<BodyWidgetProps, BodyWidgetState
 								.getDiagramEngine()
 								.getDiagramModel()
 								.addNode(node);
+							const nodes = this.props.app.getDiagramEngine().getDiagramModel().nodes;
+							const link = (nodes[Object.keys(nodes)[0]] as DefaultNodeModel).getOutPorts()[0].link(port);
+							this.props.app
+								.getDiagramEngine()
+								.getDiagramModel()
+								.addLink(link);
 							this.forceUpdate();
 						}}
 						onDragOver={event => {
