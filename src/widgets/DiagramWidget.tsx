@@ -32,6 +32,8 @@ export interface DiagramProps extends BaseWidgetProps {
 	actionStoppedFiring?: (action: BaseAction) => void;
 
 	deleteKeys?: number[];
+
+	onMoveFinished?: (action: MoveItemsAction) => void;
 }
 
 export interface DiagramState {
@@ -389,6 +391,10 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 					}
 				}
 			});
+
+			if (this.props.onMoveFinished) {
+				this.props.onMoveFinished(this.state.action);
+			}
 
 			diagramEngine.clearRepaintEntities();
 			this.stopFiringAction(!this.state.wasMoved);
