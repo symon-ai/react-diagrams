@@ -34,6 +34,7 @@ export interface DiagramProps extends BaseWidgetProps {
 	deleteKeys?: number[];
 
 	onMoveFinished?: (action: MoveItemsAction) => void;
+	blockDelete?: boolean;
 }
 
 export interface DiagramState {
@@ -300,6 +301,10 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 	}
 
 	onKeyUp(event) {
+		// don't delete anything if an input field is focused
+		if ((event.path && event.path[0].tagName === "INPUT") || this.props.blockDelete) {
+			return;
+		}
 		//delete all selected
 		if (this.props.deleteKeys.indexOf(event.keyCode) !== -1) {
 			_.forEach(this.props.diagramEngine.getDiagramModel().getSelectedItems(), element => {
