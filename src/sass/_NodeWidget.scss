@@ -5,10 +5,4 @@
   user-select: none;
   cursor: move;
   pointer-events: all;
-
-  &--selected{
-    > * {
-      border-color:rgb(0,192,255) !important;
-    }
-  }
 }
