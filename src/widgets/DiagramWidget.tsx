@@ -398,8 +398,8 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 					}
 				}
 			});
-
-			if (this.props.onMoveFinished) {
+			debugger;
+			if (this.props.onMoveFinished && this.state.wasMoved) {
 				this.props.onMoveFinished(this.state.action);
 			}
 
