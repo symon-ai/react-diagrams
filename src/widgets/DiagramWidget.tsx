@@ -33,6 +33,8 @@ export interface DiagramProps extends BaseWidgetProps {
 
 	deleteKeys?: number[];
 
+	onMovingSingle?: (action: MoveItemsAction) => void;
+	onMovingSingle2?: (action: MoveItemsAction) => void;
 	onMoveFinished?: (action: MoveItemsAction) => void;
 	blockDelete?: boolean;
 }
@@ -284,6 +286,12 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 			}
 
 			this.fireAction();
+			if (this.props.onMovingSingle) {
+				this.props.onMovingSingle(this.state.action);
+			}
+			if (this.props.onMovingSingle2) {
+				this.props.onMovingSingle2(this.state.action);
+			}
 			if (!this.state.wasMoved) {
 				this.setState({ wasMoved: true });
 			} else {
