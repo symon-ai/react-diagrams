@@ -168,7 +168,13 @@ export class DiagramModel extends BaseEntity<DiagramListener> {
 	}
 
 	setZoomLevel(zoom: number) {
-		this.zoom = zoom;
+		if (zoom > 300) {
+			this.zoom = 300;
+		} else if (zoom < 10.1) {
+			this.zoom = 10.5;
+		} else {
+			this.zoom = zoom;
+		}
 
 		this.iterateListeners((listener, event) => {
 			if (listener.zoomUpdated) {
