@@ -337,6 +337,36 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				if (!(model.model instanceof PointModel)) {
 					return;
 				}
+				const pointLink = model.model.getLink();
+				if (element.model.parent && element.model.parent.id === pointLink.sourcePort.parent.id) {
+					// dont allow to link the same node
+					pointLink.remove();
+					return;
+				}
+				if (pointLink.sourcePort) {
+					const links = pointLink.sourcePort.getLinks();
+					if ((pointLink.sourcePort as any).in) {
+						const keys = Object.keys(links);
+						for (let i = 0; i < keys.length; i++) {
+							const link = links[keys[i]];
+							if (link.targetPort && link.sourcePort && link.targetPort.id === pointLink.sourcePort.id && link.sourcePort.id === element.model.id) {
+								pointLink.remove();
+								return;
+							}
+						}
+					} else {
+						const keys = Object.keys(links);
+						for (let i = 0; i < keys.length; i++) {
+							const link = links[keys[i]];
+							if (link.targetPort && link.sourcePort && link.sourcePort.id === pointLink.sourcePort.id && link.targetPort.id === element.model.id) {
+								pointLink.remove();
+								return;
+							}
+						}
+					}
+				} else {
+					throw new Error("jsweetman-storm-react-diagrams point has not sourcePort or targetPort.");
+				}
 				if (element && element.model instanceof PortModel && !diagramEngine.isModelLocked(element.model)) {
 					let link = model.model.getLink();
 					if (link.getTargetPort() !== null) {
