@@ -343,13 +343,14 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 					pointLink.remove();
 					return;
 				}
+				const diagramLinks = diagramEngine.diagramModel.links;
 				if (pointLink.sourcePort) {
 					const links = pointLink.sourcePort.getLinks();
 					if ((pointLink.sourcePort as any).in) {
 						const keys = Object.keys(links);
 						for (let i = 0; i < keys.length; i++) {
 							const link = links[keys[i]];
-							if (link.targetPort && link.sourcePort && link.targetPort.id === pointLink.sourcePort.id && link.sourcePort.id === element.model.id) {
+							if (link.targetPort && link.sourcePort && link.targetPort.id === pointLink.sourcePort.id && link.sourcePort.id === element.model.id && !!diagramLinks[link.id]) {
 								pointLink.remove();
 								return;
 							}
@@ -358,7 +359,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 						const keys = Object.keys(links);
 						for (let i = 0; i < keys.length; i++) {
 							const link = links[keys[i]];
-							if (link.targetPort && link.sourcePort && link.sourcePort.id === pointLink.sourcePort.id && link.targetPort.id === element.model.id) {
+							if (link.targetPort && link.sourcePort && link.sourcePort.id === pointLink.sourcePort.id && link.targetPort.id === element.model.id && !!diagramLinks[link.id]) {
 								pointLink.remove();
 								return;
 							}
@@ -416,25 +417,25 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				if (!(model.model instanceof PointModel)) {
 					return;
 				}
-
-				let link: LinkModel = model.model.getLink();
-				let sourcePort: PortModel = link.getSourcePort();
-				let targetPort: PortModel = link.getTargetPort();
-				if (sourcePort !== null && targetPort !== null) {
-					if (!sourcePort.canLinkToPort(targetPort)) {
-						//link not allowed
-						link.remove();
-					} else if (
-						_.some(
-							_.values(targetPort.getLinks()),
-							(l: LinkModel) =>
-								l !== link && (l.getSourcePort() === sourcePort || l.getTargetPort() === sourcePort)
-						)
-					) {
-						//link is a duplicate
-						link.remove();
-					}
-				}
+				// Jon: This code doesn't seem to work
+				// let link: LinkModel = model.model.getLink();
+				// let sourcePort: PortModel = link.getSourcePort();
+				// let targetPort: PortModel = link.getTargetPort();
+				// if (sourcePort !== null && targetPort !== null) {
+				// 	if (!sourcePort.canLinkToPort(targetPort)) {
+				// 		//link not allowed
+				// 		link.remove();
+				// 	} else if (
+				// 		_.some(
+				// 			_.values(targetPort.getLinks()),
+				// 			(l: LinkModel) =>
+				// 				l !== link && (l.getSourcePort() === sourcePort || l.getTargetPort() === sourcePort)
+				// 		)
+				// 	) {
+				// 		//link is a duplicate
+				// 		link.remove();
+				// 	}
+				// }
 			});
 			if (this.props.onMoveFinished && this.state.wasMoved) {
 				this.props.onMoveFinished(this.state.action);
