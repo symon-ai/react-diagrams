@@ -338,8 +338,8 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 					return;
 				}
 				const pointLink = model.model.getLink();
-				if (element.model.parent && element.model.parent.id === pointLink.sourcePort.parent.id) {
-					// dont allow to link the same node
+				if (!element || (element.model && element.model.parent && element.model.parent.id === pointLink.sourcePort.parent.id)) {
+					// dont allow to link the same node or links that end on things not in graph, like header
 					pointLink.remove();
 					return;
 				}
