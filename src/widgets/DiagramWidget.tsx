@@ -339,8 +339,13 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				}
 				const pointLink = model.model.getLink();
 				if (!element || (element.model && element.model.parent && element.model.parent.id === pointLink.sourcePort.parent.id)) {
-					// dont allow to link the same node or links that end on things not in graph, like header
-					pointLink.remove();
+					// If more than one thing is being moved, than we are trying to make an edge
+					const allModels = (this.state.action as any).selectionModels;
+					if (allModels && allModels.length === 1) {
+						// dont allow to link the same node or links that end on things not in graph, like header
+						pointLink.remove();
+						return;
+					}
 					return;
 				}
 				const diagramLinks = diagramEngine.diagramModel.links;
@@ -416,6 +421,18 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				//only care about points connecting to things
 				if (!(model.model instanceof PointModel)) {
 					return;
+				}
+				let link: LinkModel = model.model.getLink();
+				let sourcePort: PortModel = link.getSourcePort();
+				let targetPort: PortModel = link.getTargetPort();
+				if (sourcePort !== null && targetPort !== null) {
+					if ((sourcePort as any).in && !(targetPort as any).in) {
+						const forwardLink = link.clone({});
+						forwardLink.setSourcePort(targetPort);
+						forwardLink.setTargetPort(sourcePort);
+						diagramEngine.getDiagramModel().addLink(forwardLink);
+						link.remove();
+					}
 				}
 				// Jon: This code doesn't seem to work
 				// let link: LinkModel = model.model.getLink();
