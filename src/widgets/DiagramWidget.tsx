@@ -339,12 +339,13 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				}
 				const pointLink = model.model.getLink();
 				if (!element || (element.model && element.model.parent && element.model.parent.id === pointLink.sourcePort.parent.id)) {
-					// If more than one thing is being moved, than we are trying to make an edge
 					const allModels = (this.state.action as any).selectionModels;
-					if (allModels && allModels.length === 1) {
+					if (allModels && allModels.length === 1 || pointLink.getSourcePort() === null || pointLink.getTargetPort() === null) {
 						// dont allow to link the same node or links that end on things not in graph, like header
 						pointLink.remove();
-						return;
+					} else if ((pointLink.getSourcePort() as any).in === (pointLink.getTargetPort() as any).in) {
+						// do not allow in to in or end to end
+						pointLink.remove();
 					}
 					return;
 				}
@@ -355,7 +356,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 						const keys = Object.keys(links);
 						for (let i = 0; i < keys.length; i++) {
 							const link = links[keys[i]];
-							if (link.targetPort && link.sourcePort && link.targetPort.id === pointLink.sourcePort.id && link.sourcePort.id === element.model.id && !!diagramLinks[link.id]) {
+							if (link.id !== pointLink.id && link.targetPort && link.sourcePort && link.targetPort.id === pointLink.sourcePort.id && link.sourcePort.id === element.model.id && !!diagramLinks[link.id]) {
 								pointLink.remove();
 								return;
 							}
@@ -364,7 +365,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 						const keys = Object.keys(links);
 						for (let i = 0; i < keys.length; i++) {
 							const link = links[keys[i]];
-							if (link.targetPort && link.sourcePort && link.sourcePort.id === pointLink.sourcePort.id && link.targetPort.id === element.model.id && !!diagramLinks[link.id]) {
+							if (link.id !== pointLink.id && link.targetPort && link.sourcePort && link.sourcePort.id === pointLink.sourcePort.id && link.targetPort.id === element.model.id && !!diagramLinks[link.id]) {
 								pointLink.remove();
 								return;
 							}
@@ -376,23 +377,25 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				if (element && element.model instanceof PortModel && !diagramEngine.isModelLocked(element.model)) {
 					let link = model.model.getLink();
 					if (link.getTargetPort() !== null) {
+						// Jon: we don't want this weird feature
+
 						//if this was a valid link already and we are adding a node in the middle, create 2 links from the original
-						if (link.getTargetPort() !== element.model && link.getSourcePort() !== element.model) {
-							const targetPort = link.getTargetPort();
-							let newLink = link.clone({});
-							newLink.setSourcePort(element.model);
-							newLink.setTargetPort(targetPort);
-							link.setTargetPort(element.model);
-							targetPort.removeLink(link);
-							newLink.removePointsBefore(newLink.getPoints()[link.getPointIndex(model.model)]);
-							link.removePointsAfter(model.model);
-							diagramEngine.getDiagramModel().addLink(newLink);
-							//if we are connecting to the same target or source, remove tweener points
-						} else if (link.getTargetPort() === element.model) {
-							link.removePointsAfter(model.model);
-						} else if (link.getSourcePort() === element.model) {
-							link.removePointsBefore(model.model);
-						}
+						// if (link.getTargetPort() !== element.model && link.getSourcePort() !== element.model) {
+						// 	const targetPort = link.getTargetPort();
+						// 	let newLink = link.clone({});
+						// 	newLink.setSourcePort(element.model);
+						// 	newLink.setTargetPort(targetPort);
+						// 	link.setTargetPort(element.model);
+						// 	targetPort.removeLink(link);
+						// 	newLink.removePointsBefore(newLink.getPoints()[link.getPointIndex(model.model)]);
+						// 	link.removePointsAfter(model.model);
+						// 	diagramEngine.getDiagramModel().addLink(newLink);
+						// 	//if we are connecting to the same target or source, remove tweener points
+						// } else if (link.getTargetPort() === element.model) {
+						// 	link.removePointsAfter(model.model);
+						// } else if (link.getSourcePort() === element.model) {
+						// 	link.removePointsBefore(model.model);
+						// }
 					} else {
 						link.setTargetPort(element.model);
 					}
@@ -431,6 +434,9 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 						forwardLink.setSourcePort(targetPort);
 						forwardLink.setTargetPort(sourcePort);
 						diagramEngine.getDiagramModel().addLink(forwardLink);
+						link.remove();
+					} else if ((sourcePort as any).in === (targetPort as any).in) {
+						// do not allow in to in or end to end
 						link.remove();
 					}
 				}
