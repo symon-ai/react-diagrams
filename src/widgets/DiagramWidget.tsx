@@ -35,7 +35,7 @@ export interface DiagramProps extends BaseWidgetProps {
 
 	onMovingSingle?: (action: MoveItemsAction) => void;
 	onMovingSingle2?: (action: MoveItemsAction) => void;
-	onMoveFinished?: (action: MoveItemsAction) => void;
+	onMoveFinished?: (action: MoveItemsAction, nodeLink?: any) => void;
 	blockDelete?: boolean;
 }
 
@@ -326,8 +326,74 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 			this.forceUpdate();
 		}
 	}
+	graphAlreadyHasLink(pointLink: LinkModel, diagramLinks, element): boolean {
+		const links = pointLink.sourcePort.getLinks();
+		if ((pointLink.sourcePort as any).in) {
+			const keys = Object.keys(links);
+			for (let i = 0; i < keys.length; i++) {
+				const link = links[keys[i]];
+				if (
+					link.id !== pointLink.id &&
+					link.targetPort && link.sourcePort &&
+					link.targetPort.id === pointLink.sourcePort.id &&
+					link.sourcePort.id === element.model.id &&
+					!!diagramLinks[link.id]
+				) {
+					return true;
+				}
+			}
+		} else {
+			const keys = Object.keys(links);
+			for (let i = 0; i < keys.length; i++) {
+				const link = links[keys[i]];
+				if (
+					link.id !== pointLink.id &&
+					link.targetPort && link.sourcePort &&
+					link.sourcePort.id === pointLink.sourcePort.id &&
+					link.targetPort.id === element.model.id &&
+					!!diagramLinks[link.id]
+				) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	shouldAddLink(pointLink: LinkModel, srcPort: PortModel, tarPort: PortModel): boolean {
+		const links = pointLink.sourcePort.getLinks();
+		if ((pointLink.sourcePort as any).in) {
+			const keys = Object.keys(links);
+			for (let i = 0; i < keys.length; i++) {
+				const link = links[keys[i]];
+				if (
+					link.id !== pointLink.id &&
+					link.targetPort && link.sourcePort &&
+					link.targetPort.id === srcPort.id &&
+					link.sourcePort.id === tarPort.id
+				) {
+					return false;
+				}
+			}
+		} else {
+			const keys = Object.keys(links);
+			for (let i = 0; i < keys.length; i++) {
+				const link = links[keys[i]];
+				if (
+					link.id !== pointLink.id &&
+					link.targetPort && link.sourcePort &&
+					link.sourcePort.id === srcPort.id &&
+					link.targetPort.id === tarPort.id
+				) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 
 	onMouseUp(event) {
+		let nodeLink;
 		var diagramEngine = this.props.diagramEngine;
 		//are we going to connect a link to something?
 		if (this.state.action instanceof MoveItemsAction) {
@@ -338,6 +404,48 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 					return;
 				}
 				const pointLink = model.model.getLink();
+				const diagramLinks = diagramEngine.diagramModel.links;
+				if (element && element.model && (element.model as any).toolType) {
+					const isData: boolean = (pointLink.sourcePort as any).portType !== "model";
+					let matchingPortId: string | undefined;
+					if ((pointLink.sourcePort as any).in) {
+						const portKeys = Object.keys((element.model as any).ports);
+						portKeys.forEach((k, q) => {
+							const port = (element.model as any).ports[k] as any;
+							if (!port.in && (port.portType === "model" && !isData || port.portType !== "model" && isData)) {
+								matchingPortId = k;
+								// todo: check if it is empty as well
+							}
+						});
+						if (matchingPortId) {
+							const matchPort = (element.model as any).ports[matchingPortId];
+							if (this.shouldAddLink(pointLink, matchPort, pointLink.sourcePort)) {
+								nodeLink = model.model.getLink().clone({});
+								nodeLink.setSourcePort(matchPort);
+								nodeLink.setTargetPort(pointLink.sourcePort);
+								diagramEngine.getDiagramModel().addLink(nodeLink);
+							}
+						}
+					} else {
+						const portKeys = Object.keys((element.model as any).ports);
+						portKeys.forEach((k, q) => {
+							const port = (element.model as any).ports[k] as any;
+							if (port.in && (port.portType === "model" && !isData || port.portType !== "model" && isData)) {
+								matchingPortId = k;
+								// todo: check if it is empty as well
+							}
+						});
+						if (matchingPortId) {
+							const matchPort = (element.model as any).ports[matchingPortId];
+							if (this.shouldAddLink(pointLink, pointLink.sourcePort, matchPort)) {
+								nodeLink = model.model.getLink().clone({});
+								nodeLink.setSourcePort(pointLink.sourcePort);
+								nodeLink.setTargetPort(matchPort);
+								diagramEngine.getDiagramModel().addLink(nodeLink);
+							}
+						}
+					}
+				}
 				if (!element || (element.model && element.model.parent && element.model.parent.id === pointLink.sourcePort.parent.id)) {
 					const allModels = (this.state.action as any).selectionModels;
 					if (allModels && allModels.length === 1 || pointLink.getSourcePort() === null || pointLink.getTargetPort() === null) {
@@ -349,28 +457,31 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 					}
 					return;
 				}
-				const diagramLinks = diagramEngine.diagramModel.links;
 				if (pointLink.sourcePort) {
-					const links = pointLink.sourcePort.getLinks();
-					if ((pointLink.sourcePort as any).in) {
-						const keys = Object.keys(links);
-						for (let i = 0; i < keys.length; i++) {
-							const link = links[keys[i]];
-							if (link.id !== pointLink.id && link.targetPort && link.sourcePort && link.targetPort.id === pointLink.sourcePort.id && link.sourcePort.id === element.model.id && !!diagramLinks[link.id]) {
-								pointLink.remove();
-								return;
-							}
-						}
-					} else {
-						const keys = Object.keys(links);
-						for (let i = 0; i < keys.length; i++) {
-							const link = links[keys[i]];
-							if (link.id !== pointLink.id && link.targetPort && link.sourcePort && link.sourcePort.id === pointLink.sourcePort.id && link.targetPort.id === element.model.id && !!diagramLinks[link.id]) {
-								pointLink.remove();
-								return;
-							}
-						}
+					const hasLinkAlready = this.graphAlreadyHasLink(pointLink, diagramLinks, element);
+					if (hasLinkAlready) {
+						pointLink.remove();
 					}
+					// const links = pointLink.sourcePort.getLinks();
+					// if ((pointLink.sourcePort as any).in) {
+					// 	const keys = Object.keys(links);
+					// 	for (let i = 0; i < keys.length; i++) {
+					// 		const link = links[keys[i]];
+					// 		if (link.id !== pointLink.id && link.targetPort && link.sourcePort && link.targetPort.id === pointLink.sourcePort.id && link.sourcePort.id === element.model.id && !!diagramLinks[link.id]) {
+					// 			pointLink.remove();
+					// 			return;
+					// 		}
+					// 	}
+					// } else {
+					// 	const keys = Object.keys(links);
+					// 	for (let i = 0; i < keys.length; i++) {
+					// 		const link = links[keys[i]];
+					// 		if (link.id !== pointLink.id && link.targetPort && link.sourcePort && link.sourcePort.id === pointLink.sourcePort.id && link.targetPort.id === element.model.id && !!diagramLinks[link.id]) {
+					// 			pointLink.remove();
+					// 			return;
+					// 		}
+					// 	}
+					// }
 				} else {
 					throw new Error("jsweetman-storm-react-diagrams point has not sourcePort or targetPort.");
 				}
@@ -461,7 +572,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				// }
 			});
 			if (this.props.onMoveFinished && this.state.wasMoved) {
-				this.props.onMoveFinished(this.state.action);
+				this.props.onMoveFinished(this.state.action, nodeLink);
 			}
 
 			diagramEngine.clearRepaintEntities();
