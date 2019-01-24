@@ -361,6 +361,9 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 	}
 
 	shouldAddLink(pointLink: LinkModel, srcPort: PortModel, tarPort: PortModel): boolean {
+		if (srcPort.parent.id === tarPort.parent.id) {
+			return false;
+		}
 		const links = pointLink.sourcePort.getLinks();
 		if ((pointLink.sourcePort as any).in) {
 			const keys = Object.keys(links);
@@ -405,18 +408,21 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				}
 				const pointLink = model.model.getLink();
 				const diagramLinks = diagramEngine.diagramModel.links;
-				if (element && element.model && (element.model as any).toolType) {
+				if ((this.state.action as MoveItemsAction).selectionModels.length === 1 && element && element.model && (element.model as any).toolType) {
 					const isData: boolean = (pointLink.sourcePort as any).portType !== "model";
 					let matchingPortId: string | undefined;
 					if ((pointLink.sourcePort as any).in) {
 						const portKeys = Object.keys((element.model as any).ports);
-						portKeys.forEach((k, q) => {
+						for (let c = 0; c < portKeys.length; c++) {
+							const k = portKeys[c];
 							const port = (element.model as any).ports[k] as any;
 							if (!port.in && (port.portType === "model" && !isData || port.portType !== "model" && isData)) {
 								matchingPortId = k;
-								// todo: check if it is empty as well
+								if (Object.keys(port.links).length === 0) {
+									break;
+								}
 							}
-						});
+						}
 						if (matchingPortId) {
 							const matchPort = (element.model as any).ports[matchingPortId];
 							if (this.shouldAddLink(pointLink, matchPort, pointLink.sourcePort)) {
@@ -428,13 +434,16 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 						}
 					} else {
 						const portKeys = Object.keys((element.model as any).ports);
-						portKeys.forEach((k, q) => {
+						for (let c = 0; c < portKeys.length; c++) {
+							const k = portKeys[c];
 							const port = (element.model as any).ports[k] as any;
 							if (port.in && (port.portType === "model" && !isData || port.portType !== "model" && isData)) {
 								matchingPortId = k;
-								// todo: check if it is empty as well
+								if (Object.keys(port.links).length === 0) {
+									break;
+								}
 							}
-						});
+						}
 						if (matchingPortId) {
 							const matchPort = (element.model as any).ports[matchingPortId];
 							if (this.shouldAddLink(pointLink, pointLink.sourcePort, matchPort)) {
