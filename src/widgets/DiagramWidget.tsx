@@ -33,6 +33,7 @@ export interface DiagramProps extends BaseWidgetProps {
 
 	deleteKeys?: number[];
 
+	onMoveStart?: (action: MoveItemsAction) => void;
 	onMovingSingle?: (action: MoveItemsAction) => void;
 	onMovingSingle2?: (action: MoveItemsAction) => void;
 	onMoveFinished?: (action: MoveItemsAction, nodeLink?: any) => void;
@@ -705,10 +706,11 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 								diagramModel.clearSelection();
 								link.getLastPoint().setSelected(true);
 								diagramModel.addLink(link);
-
-								this.startFiringAction(
-									new MoveItemsAction(event.clientX, event.clientY, diagramEngine)
-								);
+								const moveAction = new MoveItemsAction(event.clientX, event.clientY, diagramEngine);
+								if (this.props.onMoveStart) {
+									this.props.onMoveStart(moveAction);
+								}
+								this.startFiringAction(moveAction);
 							}
 						} else {
 							diagramModel.clearSelection();
