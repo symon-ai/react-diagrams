@@ -397,7 +397,6 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 	}
 
 	onMouseUp(event) {
-		debugger;
 		let nodeLink;
 		var diagramEngine = this.props.diagramEngine;
 		//are we going to connect a link to something?
