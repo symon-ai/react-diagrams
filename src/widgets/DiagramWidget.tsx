@@ -397,6 +397,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 	}
 
 	onMouseUp(event) {
+		debugger;
 		let nodeLink;
 		var diagramEngine = this.props.diagramEngine;
 		//are we going to connect a link to something?
@@ -525,7 +526,10 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 			});
 
 			//check for / remove any loose links in any models which have been moved
-			if (!this.props.allowLooseLinks && this.state.wasMoved) {
+			// Jon: Removed wasMoved, a scenario where wasMoved was false appeared if you clicked the edge of node to add, such link should be removed
+			if (!this.props.allowLooseLinks) {
+				// if (!this.props.allowLooseLinks && this.state.wasMoved) {
+
 				_.forEach(this.state.action.selectionModels, model => {
 					//only care about points connecting to things
 					if (!(model.model instanceof PointModel)) {
@@ -538,6 +542,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 						link.remove();
 					}
 				});
+				// }
 			}
 
 			//remove any invalid links
