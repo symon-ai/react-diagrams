@@ -305,6 +305,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 					this.state.action.initialOffsetX + (event.clientX - this.state.action.mouseX),
 					this.state.action.initialOffsetY + (event.clientY - this.state.action.mouseY)
 				);
+				diagramModel.setIsCanvasMoving(true);
 				this.fireAction();
 				this.forceUpdate();
 			}
@@ -593,6 +594,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 			this.stopFiringAction(!this.state.wasMoved);
 		} else {
 			diagramEngine.clearRepaintEntities();
+			diagramEngine.getDiagramModel().setIsCanvasMoving(false);
 			this.stopFiringAction();
 		}
 		this.state.document.removeEventListener("mousemove", this.onMouseMove);
