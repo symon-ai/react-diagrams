@@ -632,7 +632,6 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				}}
 				onWheel={event => {
 					if (this.props.allowCanvasZoom) {
-						event.preventDefault();
 						event.stopPropagation();
 						const oldZoomFactor = diagramModel.getZoomLevel() / 100;
 						let scrollDelta = this.props.inverseZoom ? -event.deltaY : event.deltaY;
@@ -670,8 +669,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 							diagramModel.getOffsetX() - widthDiff * xFactor,
 							diagramModel.getOffsetY() - heightDiff * yFactor
 						);
-
-						diagramEngine.enableRepaintEntities([]);
+						
 						this.forceUpdate();
 					}
 				}}
