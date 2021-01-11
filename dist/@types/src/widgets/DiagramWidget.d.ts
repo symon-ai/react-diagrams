@@ -1,10 +1,10 @@
-import { DiagramEngine } from "../DiagramEngine";
 import { BaseAction } from "../actions/BaseAction";
 import { MoveItemsAction } from "../actions/MoveItemsAction";
-import { PortModel } from "../models/PortModel";
-import { LinkModel } from "../models/LinkModel";
-import { BaseModel, BaseModelListener } from "../models/BaseModel";
 import { BaseEntity } from "../BaseEntity";
+import { DiagramEngine } from "../DiagramEngine";
+import { BaseModel, BaseModelListener } from "../models/BaseModel";
+import { LinkModel } from "../models/LinkModel";
+import { PortModel } from "../models/PortModel";
 import { BaseWidget, BaseWidgetProps } from "./BaseWidget";
 export interface DiagramProps extends BaseWidgetProps {
     diagramEngine: DiagramEngine;
@@ -14,6 +14,7 @@ export interface DiagramProps extends BaseWidgetProps {
     inverseZoom?: boolean;
     maxNumberPointsPerLink?: number;
     smartRouting?: boolean;
+    disableNodeMove?: boolean;
     actionStartedFiring?: (action: BaseAction) => boolean;
     actionStillFiring?: (action: BaseAction) => void;
     actionStoppedFiring?: (action: BaseAction) => void;
