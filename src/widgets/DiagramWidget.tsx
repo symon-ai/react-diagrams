@@ -889,7 +889,12 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 						if (!event.shiftKey && !model.model.isSelected()) {
 							diagramModel.clearSelection();
 						}
-						model.model.setSelected(true);
+
+						if (event.shiftKey && model.model.isSelected()) {
+							model.model.setSelected(false);
+						} else {
+							model.model.setSelected(true);
+						}
 
 						this.startFiringAction(
 							new MoveItemsAction(
