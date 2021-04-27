@@ -23,14 +23,8 @@
 		"build:ts": "webpack",
 		"build:ts:prod": "cross-env NODE_ENV=production webpack",
 		"build:sass:prod": "node-sass --output-style compressed ./src/sass/main.scss > ./dist/style.min.css",
-		"storybook": "start-storybook -p 9001 -c .storybook",
-		"storybook:build": "build-storybook -c .storybook -o .out",
-		"storybook:github": "storybook-to-ghpages",
 		"pretty": "prettier --use-tabs --write \"{src,demos,tests}/**/*.{ts,tsx}\" --print-width 120",
-		"lint": "tslint -p .",
-		"test:ci": "rm -rf ./dist && node ./tests/e2e/generate-e2e.js && jest --no-cache",
-		"test": "jest --no-cache",
-		"prepublishOnly": "yarn run build:ts:prod && yarn run build:sass:prod"
+		"lint": "tslint -p ."
 	},
 	"dependencies": {
 		"closest": "^0.0.1",
@@ -48,7 +42,6 @@
 		"awesome-typescript-loader": "^4.0.1",
 		"copy-webpack-plugin": "^4.5.1",
 		"cross-env": "^5.1.4",
-		"css-loader": "^0.28.10",
 		"dagre": "^0.8.2",
 		"file-loader": "^1.1.11",
 		"json-beautify": "^1.0.1",
