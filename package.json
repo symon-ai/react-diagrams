@@ -41,7 +41,7 @@
 		"cross-env": "^5.1.4",
 		"react-dom": "16.13.1",
 		"source-map-loader": "1.1.0",
-		"terser-webpack-plugin": "4.2.2",
+		"terser-webpack-plugin": "^5.1.1",
 		"ts-loader": "8.0.4",
 		"typescript": "4.0.3",
 		"webpack": "5.25.0",
