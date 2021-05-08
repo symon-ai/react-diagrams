@@ -240,31 +240,29 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 			);
 
 			_.forEach(diagramModel.getNodes(), (node) => {
-				if (
-					(this.state.action as SelectingAction).containsElement(
-						node.x,
-						node.y,
-						diagramModel
-					)
-				) {
-					if (!node.selected) {
-						node.setSelected(true);
-					}
+				const isSelected = (this.state.action as SelectingAction).containsElement(
+					node.x,
+					node.y,
+					diagramModel
+
+				);
+				if (isSelected !== node.selected) {
+					node.setSelected(isSelected);
 				}
 			});
 
 			_.forEach(diagramModel.getLinks(), (link) => {
 				var allSelected = true;
 				_.forEach(link.points, (point) => {
-					if (
-						(this.state.action as SelectingAction).containsElement(
-							point.x,
-							point.y,
-							diagramModel
-						)
-					) {
-						point.setSelected(true);
-					} else {
+					const isSelected = (this.state.action as SelectingAction).containsElement(
+						point.x,
+						point.y,
+						diagramModel
+					);
+					if (isSelected !== point.selected) {
+						point.setSelected(isSelected);
+					}
+					if (!isSelected) {
 						allSelected = false;
 					}
 				});
