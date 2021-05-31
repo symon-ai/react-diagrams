@@ -37,6 +37,11 @@ export interface DiagramProps extends BaseWidgetProps {
 	onMovingSingle?: (action: MoveItemsAction) => void;
 	onMovingSingle2?: (action: MoveItemsAction) => void;
 	onMoveFinished?: (action: MoveItemsAction, nodeLink?: any) => void;
+	shouldAddLink?: (
+		pointLink: LinkModel,
+		srcPort: PortModel,
+		tarPort: PortModel
+	) => boolean;
 	blockDelete?: boolean;
 }
 
@@ -149,9 +154,10 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 	/**
 	 * Gets a model and element under the mouse cursor
 	 */
-	getMouseElement(
-		event
-	): { model: BaseModel<BaseEntity, BaseModelListener>; element: Element } {
+	getMouseElement(event): {
+		model: BaseModel<BaseEntity, BaseModelListener>;
+		element: Element;
+	} {
 		var target = event.target as Element;
 		var diagramModel = this.props.diagramEngine.diagramModel;
 
@@ -305,9 +311,8 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 					// update port coordinates as well
 					if (model.model instanceof NodeModel) {
 						_.forEach(model.model.getPorts(), (port) => {
-							const portCoords = this.props.diagramEngine.getPortCoords(
-								port
-							);
+							const portCoords =
+								this.props.diagramEngine.getPortCoords(port);
 							port.updateCoords(portCoords);
 						});
 					}
@@ -381,82 +386,6 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 			this.forceUpdate();
 		}
 	}
-	graphAlreadyHasLink(pointLink: LinkModel, diagramLinks, element): boolean {
-		const links = pointLink.sourcePort.getLinks();
-		if ((pointLink.sourcePort as any).in) {
-			const keys = Object.keys(links);
-			for (let i = 0; i < keys.length; i++) {
-				const link = links[keys[i]];
-				if (
-					link.id !== pointLink.id &&
-					link.targetPort &&
-					link.sourcePort &&
-					link.targetPort.id === pointLink.sourcePort.id &&
-					link.sourcePort.id === element.model.id &&
-					!!diagramLinks[link.id]
-				) {
-					return true;
-				}
-			}
-		} else {
-			const keys = Object.keys(links);
-			for (let i = 0; i < keys.length; i++) {
-				const link = links[keys[i]];
-				if (
-					link.id !== pointLink.id &&
-					link.targetPort &&
-					link.sourcePort &&
-					link.sourcePort.id === pointLink.sourcePort.id &&
-					link.targetPort.id === element.model.id &&
-					!!diagramLinks[link.id]
-				) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	shouldAddLink(
-		pointLink: LinkModel,
-		srcPort: PortModel,
-		tarPort: PortModel
-	): boolean {
-		if (srcPort.parent.id === tarPort.parent.id) {
-			return false;
-		}
-		const links = pointLink.sourcePort.getLinks();
-		if ((pointLink.sourcePort as any).in) {
-			const keys = Object.keys(links);
-			for (let i = 0; i < keys.length; i++) {
-				const link = links[keys[i]];
-				if (
-					link.id !== pointLink.id &&
-					link.targetPort &&
-					link.sourcePort &&
-					link.targetPort.id === srcPort.id &&
-					link.sourcePort.id === tarPort.id
-				) {
-					return false;
-				}
-			}
-		} else {
-			const keys = Object.keys(links);
-			for (let i = 0; i < keys.length; i++) {
-				const link = links[keys[i]];
-				if (
-					link.id !== pointLink.id &&
-					link.targetPort &&
-					link.sourcePort &&
-					link.sourcePort.id === srcPort.id &&
-					link.targetPort.id === tarPort.id
-				) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
 
 	onMouseUp(event) {
 		let nodeLink;
@@ -504,7 +433,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 								matchingPortId
 							];
 							if (
-								this.shouldAddLink(
+								this.props.shouldAddLink(
 									pointLink,
 									matchPort,
 									pointLink.sourcePort
@@ -541,7 +470,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 								matchingPortId
 							];
 							if (
-								this.shouldAddLink(
+								this.props.shouldAddLink(
 									pointLink,
 									pointLink.sourcePort,
 									matchPort
@@ -582,36 +511,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 					}
 					return;
 				}
-				if (pointLink.sourcePort) {
-					const hasLinkAlready = this.graphAlreadyHasLink(
-						pointLink,
-						diagramLinks,
-						element
-					);
-					if (hasLinkAlready) {
-						pointLink.remove();
-					}
-					// const links = pointLink.sourcePort.getLinks();
-					// if ((pointLink.sourcePort as any).in) {
-					// 	const keys = Object.keys(links);
-					// 	for (let i = 0; i < keys.length; i++) {
-					// 		const link = links[keys[i]];
-					// 		if (link.id !== pointLink.id && link.targetPort && link.sourcePort && link.targetPort.id === pointLink.sourcePort.id && link.sourcePort.id === element.model.id && !!diagramLinks[link.id]) {
-					// 			pointLink.remove();
-					// 			return;
-					// 		}
-					// 	}
-					// } else {
-					// 	const keys = Object.keys(links);
-					// 	for (let i = 0; i < keys.length; i++) {
-					// 		const link = links[keys[i]];
-					// 		if (link.id !== pointLink.id && link.targetPort && link.sourcePort && link.sourcePort.id === pointLink.sourcePort.id && link.targetPort.id === element.model.id && !!diagramLinks[link.id]) {
-					// 			pointLink.remove();
-					// 			return;
-					// 		}
-					// 	}
-					// }
-				} else {
+				if (!pointLink.sourcePort) {
 					throw new Error(
 						"jsweetman-storm-react-diagrams point has not sourcePort or targetPort."
 					);
@@ -731,8 +631,9 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 	}
 
 	drawSelectionBox() {
-		let dimensions = (this.state
-			.action as SelectingAction).getBoxDimensions();
+		let dimensions = (
+			this.state.action as SelectingAction
+		).getBoxDimensions();
 		return (
 			<div
 				className={this.bem("__selector")}
@@ -787,7 +688,8 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 
 						const zoomFactor = diagramModel.getZoomLevel() / 100;
 
-						const boundingRect = event.currentTarget.getBoundingClientRect();
+						const boundingRect =
+							event.currentTarget.getBoundingClientRect();
 						const clientWidth = boundingRect.width;
 						const clientHeight = boundingRect.height;
 						// compute difference between rect before and after scroll
@@ -851,9 +753,8 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 						if (
 							!this.props.diagramEngine.isModelLocked(model.model)
 						) {
-							var relative = diagramEngine.getRelativeMousePoint(
-								event
-							);
+							var relative =
+								diagramEngine.getRelativeMousePoint(event);
 							var sourcePort = model.model;
 							var link = sourcePort.createLinkModel();
 							link.setSourcePort(sourcePort);
