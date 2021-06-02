@@ -42,6 +42,11 @@ export interface DiagramProps extends BaseWidgetProps {
 		srcPort: PortModel,
 		tarPort: PortModel
 	) => boolean;
+	graphAlreadyHasLink?: (
+		pointLink: LinkModel,
+		diagramLinks,
+		element
+	) => boolean;
 	blockDelete?: boolean;
 }
 
@@ -511,7 +516,13 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 					}
 					return;
 				}
-				if (!pointLink.sourcePort) {
+				if (pointLink.sourcePort) {
+					this.props.graphAlreadyHasLink(
+						pointLink,
+						diagramLinks,
+						element
+					);
+				} else {
 					throw new Error(
 						"jsweetman-storm-react-diagrams point has not sourcePort or targetPort."
 					);
