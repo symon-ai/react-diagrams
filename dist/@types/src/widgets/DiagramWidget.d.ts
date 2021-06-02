@@ -32,6 +32,11 @@ export interface DiagramProps extends BaseWidgetProps {
 		srcPort: PortModel,
 		tarPort: PortModel
 	) => boolean;
+	graphAlreadyHasLink?: (
+		pointLink: LinkModel,
+		diagramLinks,
+		element
+	) => boolean;
 	blockDelete?: boolean;
 }
 export interface DiagramState {
