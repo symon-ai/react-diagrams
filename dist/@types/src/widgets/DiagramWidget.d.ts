@@ -22,7 +22,11 @@ export interface DiagramProps extends BaseWidgetProps {
 	onMoveStart?: (action: MoveItemsAction) => void;
 	onMovingSingle?: (action: MoveItemsAction) => void;
 	onMovingSingle2?: (action: MoveItemsAction) => void;
-	onMoveFinished?: (action: MoveItemsAction, nodeLink?: any) => void;
+	onMoveFinished?: (
+		action: MoveItemsAction,
+		nodeLink?: any,
+		forwardLink?: any
+	) => void;
 	shouldAddLink?: (
 		pointLink: LinkModel,
 		srcPort: PortModel,

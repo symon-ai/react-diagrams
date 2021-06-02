@@ -36,7 +36,11 @@ export interface DiagramProps extends BaseWidgetProps {
 	onMoveStart?: (action: MoveItemsAction) => void;
 	onMovingSingle?: (action: MoveItemsAction) => void;
 	onMovingSingle2?: (action: MoveItemsAction) => void;
-	onMoveFinished?: (action: MoveItemsAction, nodeLink?: any) => void;
+	onMoveFinished?: (
+		action: MoveItemsAction,
+		nodeLink?: any,
+		forwardLink?: any
+	) => void;
 	shouldAddLink?: (
 		pointLink: LinkModel,
 		srcPort: PortModel,
@@ -394,6 +398,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 
 	onMouseUp(event) {
 		let nodeLink;
+		let forwardLink;
 		var diagramEngine = this.props.diagramEngine;
 		//are we going to connect a link to something?
 		if (this.state.action instanceof MoveItemsAction) {
@@ -594,7 +599,7 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				let targetPort: PortModel = link.getTargetPort();
 				if (sourcePort !== null && targetPort !== null) {
 					if ((sourcePort as any).in && !(targetPort as any).in) {
-						const forwardLink = link.clone({});
+						forwardLink = link.clone({});
 						forwardLink.setSourcePort(targetPort);
 						forwardLink.setTargetPort(sourcePort);
 						diagramEngine.getDiagramModel().addLink(forwardLink);
@@ -627,7 +632,11 @@ export class DiagramWidget extends BaseWidget<DiagramProps, DiagramState> {
 				// }
 			});
 			if (this.props.onMoveFinished && this.state.wasMoved) {
-				this.props.onMoveFinished(this.state.action, nodeLink);
+				this.props.onMoveFinished(
+					this.state.action,
+					nodeLink,
+					forwardLink
+				);
 			}
 
 			diagramEngine.clearRepaintEntities();
